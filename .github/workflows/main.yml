@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { msystem: clang64, runner: windows-2022 },
+          { msystem: clang64, runner: windows-2025 },
           { msystem: clangarm64, runner: windows-11-arm}
         ]
     name: ${{ matrix.msystem }}
