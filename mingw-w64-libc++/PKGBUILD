@@ -1,5 +1,4 @@
 # Contributor: Mehdi Chinoune <mehdi.chinoune@hotmail.com>
-
 if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
   _clangprefix=1
 fi
