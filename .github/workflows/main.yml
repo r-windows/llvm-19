@@ -1,0 +1,84 @@
+name: main
+
+on:
+  push:
+    paths:
+      - 'mingw-w64-*/*'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      remove_package:
+        description: Package name (without the mingw-w64- prefix) to remove
+        required: true
+
+run-name: ${{ github.event.pull_request.title || github.event.head_commit.message || format('{0} [removal] ', inputs.remove_package) }} (${{github.event_name}})
+
+jobs:
+  build:
+    timeout-minutes: 600
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { msystem: clang64, runner: windows-2022 },
+          { msystem: clangarm64, runner: windows-11-arm}
+        ]
+    name: ${{ matrix.msystem }}
+    runs-on: ${{ github.event.inputs.remove_package && 'windows-2022' || matrix.runner }}
+    env:
+      BUILD_URL: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+      MINGW_ARCH: ${{ matrix.msystem }}
+      PACMAN_REPOSITORY: ${{ matrix.msystem }}-llvm-19
+    steps:
+
+      # Requires git-for-windows (msys2 git is not enough)
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: msys2/setup-msys2@v2
+        timeout-minutes: 3
+        with:
+          msystem: ${{ matrix.msystem }}
+          install: gzip zstd git patch make unzip pactoys base-devel
+          update: true
+
+      - name: Cleanup old stuff
+        run: rm -Rf */pkg */src
+        shell: msys2 {0}
+
+      - name: CI-Build
+        run: ./ci-build.sh
+        if: success() && ! github.event.inputs.remove_package
+        shell: msys2 {0}
+
+      - name: Remove packages
+        run: ./ci-remove.sh ${{ github.event.inputs.remove_package }}
+        if: github.event.inputs.remove_package
+        shell: msys2 {0}
+
+      - name: "Upload binary package"
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.msystem }}-llvm-19
+          path: artifacts/
+
+  deploy:
+    name: Deploy to staging server
+    runs-on: ubuntu-24.04
+    needs: [build]
+    if: success() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Get artifacts for deployment
+        uses: actions/download-artifact@v4
+      - id: deployment
+        name: Uploading files
+        run: |
+          ls -ltrR
+          eval $(ssh-agent -s)
+          ssh-add <(echo "$STAGINGKEY")
+          echo 'put -pr .' | sftp -oStrictHostKeyChecking=no "${STAGINGUSER}@ftp.opencpu.org:/msys2"
+          exit ${PIPESTATUS[1]}
+        env:
+          STAGINGUSER: ${{ secrets.STAGINGUSER }}
+          STAGINGKEY: ${{ secrets.STAGINGKEY }}
