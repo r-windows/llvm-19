@@ -5,30 +5,29 @@
 _realname=winpthreads
 pkgbase=mingw-w64-${_realname}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
-pkgver=11.0.0.r750.g05598db99
+pkgver=11.0.1
 pkgrel=1
-_commit='05598db991767e79b3d701ca0979df050d82eb11'
-pkgdesc="MinGW-w64 winpthreads library (mingw-w64)"
-url="https://www.mingw-w64.org/"
-msys2_repository_url="https://sourceforge.net/p/mingw-w64/mingw-w64/ci/master/tree/mingw-w64-libraries/winpthreads"
+_commit='c3e587c067a00a561899d49d3e63a659e38802ec'
+pkgdesc="MinGW-w64 winpthreads library"
+url="https://mingw-w64.sourceforge.io/"
 # The main license of `winpthreads' is MIT, but parts of this library are
 # derived from the "POSIX Threads for Microsoft Windows" library, which is
 # licensed under BSD [1].
-license=('spdx:MIT AND BSD-3-Clause-Clear')
+license=('MIT' 'BSD')
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
 groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
-makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
-             "${MINGW_PACKAGE_PREFIX}-binutils"
+makedepends=("git"
              "${MINGW_PACKAGE_PREFIX}-autotools"
+             "${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-binutils"
              "${MINGW_PACKAGE_PREFIX}-crt-git"
-             "${MINGW_PACKAGE_PREFIX}-headers-git"
-             "git")
+             "${MINGW_PACKAGE_PREFIX}-headers-git")
 options=('!emptydirs')
 source=("mingw-w64"::"git+https://git.code.sf.net/p/mingw-w64/mingw-w64#commit=$_commit"
         "0001-Define-__-de-register_frame_info-in-fake-libgcc_s.patch")
 sha256sums=('SKIP'
-            '2e779bcc60a1422b23e0cfdb5c0f6851f2382592bb4675d08a6bdef78d5e5c10')
+            'd9e8af81682d9bf70e3d87506f51156cec61260b810a234bce861cb2eb3a5919')
 
 pkgver() {
   cd "${srcdir}/mingw-w64"
@@ -45,6 +44,7 @@ prepare() {
 }
 
 build() {
+  [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
   mkdir -p "${srcdir}"/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
 
   declare -a extra_config
@@ -58,6 +58,9 @@ build() {
 
   ../mingw-w64/mingw-w64-libraries/winpthreads/configure \
     --prefix=${MINGW_PREFIX} \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
     --enable-static \
     --enable-shared \
     "${extra_config[@]}"
@@ -76,7 +79,8 @@ build() {
 
 _install_licenses() {
   # TODO: any more license files?
-  install -Dm644 ${srcdir}/mingw-w64/mingw-w64-libraries/winpthreads/COPYING ${pkgdir}${MINGW_PREFIX}/share/licenses/$1/COPYING
+  install -Dm644 ${srcdir}/mingw-w64/COPYING                                 ${pkgdir}${MINGW_PREFIX}/share/licenses/$1/COPYING
+  install -Dm644 ${srcdir}/mingw-w64/mingw-w64-libraries/winpthreads/COPYING ${pkgdir}${MINGW_PREFIX}/share/licenses/$1/mingw-w64-libraries/winpthreads/COPYING
 }
 
 package_winpthreads-git() {
