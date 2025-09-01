@@ -3,8 +3,8 @@
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
 
 _realname=winpthreads
-pkgbase=mingw-w64-${_realname}-git
-pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}" "${MINGW_PACKAGE_PREFIX}-libwinpthread")
 pkgver=11.0.1
 pkgrel=1
 _commit='c3e587c067a00a561899d49d3e63a659e38802ec'
@@ -83,10 +83,11 @@ _install_licenses() {
   install -Dm644 ${srcdir}/mingw-w64/mingw-w64-libraries/winpthreads/COPYING ${pkgdir}${MINGW_PREFIX}/share/licenses/$1/mingw-w64-libraries/winpthreads/COPYING
 }
 
-package_winpthreads-git() {
-  depends=("${MINGW_PACKAGE_PREFIX}-crt-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git=${pkgver}")
-  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+package_winpthreads() {
+  depends=("${MINGW_PACKAGE_PREFIX}-crt-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread=${pkgver}")
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-git")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-git")
+  replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}-git")
 
   cd ${srcdir}/build-${MSYSTEM}
   make DESTDIR=${pkgdir} install
@@ -96,9 +97,10 @@ package_winpthreads-git() {
   _install_licenses ${_realname}
 }
 
-package_libwinpthread-git() {
-  provides=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
-  conflicts=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
+package_libwinpthread() {
+  provides=("${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
+  replaces=("${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
 
   cd ${srcdir}/build-${MSYSTEM}
   make DESTDIR=${pkgdir} install
