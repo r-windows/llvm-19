@@ -19,10 +19,10 @@ pacman --noconfirm -Sy
 
 # Downgrades to be compatible with rtools
 pacman --noconfirm --needed -S patch make unzip pactoys
-pacman --noconfirm -S ${MINGW_PACKAGE_PREFIX}-{cc,libtre,pkgconf,xz}
+pacman --noconfirm -S ${MINGW_PACKAGE_PREFIX}-{cc,libtre,pkgconf,xz,winpthreads-git,headers-git}
 
 # Some upstream DLL files
-pacman --noconfirm --needed -Sdd ${MINGW_PACKAGE_PREFIX}-{gcc-libs,libwinpthread}
+pacman --noconfirm --needed -Sdd ${MINGW_PACKAGE_PREFIX}-{gcc-libs,libwinpthread,libc++}
 
 # Avoid libssp dependency
 sed -i 's/-Wp,-D_FORTIFY_SOURCE=2//g' /etc/makepkg_mingw.d/*.conf
